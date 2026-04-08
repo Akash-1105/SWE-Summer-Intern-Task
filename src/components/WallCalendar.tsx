@@ -17,20 +17,26 @@ import {
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import './WallCalendar.css';
 
-// Predefined themes/images based on months for "Theme Switching"
+// Import local seasonal images
+import winterImg from '../assets/winter.png';
+import springImg from '../assets/spring.png';
+import summerImg from '../assets/summer.png';
+import autumnImg from '../assets/autumn.png';
+
+// Map each month to a seasonal image
 const monthImages = [
-  "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?q=80&w=2000&auto=format&fit=crop", // Jan - Winter
-  "https://images.unsplash.com/photo-1518457018318-7b947cbee95d?q=80&w=2000&auto=format&fit=crop", // Feb - Snow
-  "https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?q=80&w=2000&auto=format&fit=crop", // Mar - Spring transition
-  "https://images.unsplash.com/photo-1490750967868-88cb431d102e?q=80&w=2000&auto=format&fit=crop", // Apr - Spring
-  "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?q=80&w=2000&auto=format&fit=crop", // May - Forest
-  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2000&auto=format&fit=crop", // Jun - Beach
-  "https://images.unsplash.com/photo-1519046904884-53103b34b206?q=80&w=2000&auto=format&fit=crop", // Jul - Summer
-  "https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=2000&auto=format&fit=crop", // Aug - Lake
-  "https://images.unsplash.com/photo-1444465693019-aa0b6392460a?q=80&w=2000&auto=format&fit=crop", // Sep - Autumn transition
-  "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=2000&auto=format&fit=crop", // Oct - Fall
-  "https://images.unsplash.com/photo-1504903271097-d2e7cfd60068?q=80&w=2000&auto=format&fit=crop", // Nov - Deep Fall
-  "https://images.unsplash.com/photo-1483664852095-d6cc6870702d?q=80&w=2000&auto=format&fit=crop"  // Dec - Peak Winter
+  winterImg,  // Jan
+  winterImg,  // Feb
+  springImg,  // Mar
+  springImg,  // Apr
+  springImg,  // May
+  summerImg,  // Jun
+  summerImg,  // Jul
+  summerImg,  // Aug
+  autumnImg,  // Sep
+  autumnImg,  // Oct
+  autumnImg,  // Nov
+  winterImg   // Dec
 ];
 
 interface Note {
@@ -275,25 +281,41 @@ export default function WallCalendar() {
         </svg>
       </div>
 
+      {/* SVG clip-paths — only rounding the specific bottom corners */}
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          {/* Left wave: only round the (0, 90%) bottom corner */}
+          <clipPath id="leftWaveClip" clipPathUnits="objectBoundingBox">
+            <path d="M 0,0.50 L 0.30,0.70 L 0.38,0.50 L 0.05,0.86 Q 0,0.90 0,0.85 Z" />
+          </clipPath>
+          {/* Right shape: only round the (90%, 100%) bottom corner */}
+          <clipPath id="rightWaveClip" clipPathUnits="objectBoundingBox">
+            <path d="M 0,0 L 1,0 L 1,0.85 L 0.93,0.96 Q 0.90,1.0 0.86,0.98 Z" />
+          </clipPath>
+          {/* Hero image: only round the V-point at (40%, 90%) */}
+          <clipPath id="heroClip" clipPathUnits="objectBoundingBox">
+            <path d="M 0,0 L 1,0 L 1,0.58 L 0.50,0.82 Q 0.40,0.90 0.30,0.83 L 0,0.72 Z" />
+          </clipPath>
+        </defs>
+      </svg>
+
       <div className="calendar-hero-container">
-        <img
-          src={themeImage}
-          alt="Calendar Hero"
-          className="calendar-hero-image"
-        />
-        {/* Playing Video Layer above the image */}
-        <video 
-          className="calendar-hero-video" 
-          autoPlay 
-          loop 
-          muted 
-          playsInline
-          src="https://media.w3.org/2010/05/sintel/trailer_hd.mp4"
-        />
-        <div className="calendar-hero-overlay"></div>
+        {/* Layer 1: Left blue decorative shape */}
+        <div className="hero-decor-left"></div>
+        {/* Layer 2: Right blue decorative shape */}
+        <div className="hero-decor-right"></div>
+        {/* Layer 3: Hero image with V-shaped bottom clip */}
+        <div className="hero-image-wrapper">
+          <img
+            src={themeImage}
+            alt="Calendar Hero"
+            className="calendar-hero-image"
+          />
+        </div>
+        {/* Layer 4: Month/Year text */}
         <div className="calendar-month-indicator">
+          <span className="calendar-year">{format(currentDate, 'yyyy')}</span>
           <h2>{format(currentDate, 'MMMM')}</h2>
-          <span>{format(currentDate, 'yyyy')}</span>
         </div>
       </div>
 
@@ -335,56 +357,56 @@ export default function WallCalendar() {
               <ChevronLeft size={20} />
             </button>
             <button className="nav-btn" onClick={nextMonth} aria-label="Next Month">
-            <ChevronRight size={20} />
-          </button>
+              <ChevronRight size={20} />
+            </button>
+          </div>
+
+          <div className="days-of-week">
+            {daysOfWeek.map((dayName, idx) => (
+              <span key={dayName} className={idx >= 5 ? 'weekend-header' : ''}>{dayName}</span>
+            ))}
+          </div>
+
+          <div className="days-grid">
+            {calendarInterval.map((d) => {
+              const isMonthSame = isSameMonth(d, monthStart);
+              const isToday = isSameDay(d, new Date());
+              const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+
+              let classes = `day-cell ${isMonthSame ? '' : 'inactive'}`;
+
+              if (isMonthSame && isWeekend) classes += ' active-weekend';
+              if (isToday) classes += ' is-today';
+
+              const selected = isDaySelected(d);
+              const inRange = isDayInRange(d);
+
+              if (selected && startDate && isSameDay(d, startDate)) classes += ' range-start';
+              if (selected && endDate && isSameDay(d, endDate)) classes += ' range-end';
+              if (inRange && (!selected || (startDate && endDate && isSameDay(startDate, endDate)))) {
+                // The extra logic handles hover states and the case where start/end are the same
+                classes += ' range-in-between';
+              }
+
+              // Adjust corners for start/end in range
+              if (inRange && startDate && endDate && !isSameDay(startDate, endDate)) {
+                if (isSameDay(d, startDate)) classes += ' range-in-between range-start';
+                if (isSameDay(d, endDate)) classes += ' range-in-between range-end';
+              }
+
+              return (
+                <div
+                  key={d.toISOString()}
+                  className={classes}
+                  onClick={() => isMonthSame && onDateClick(d)}
+                  onMouseEnter={() => isMonthSame && onDateHover(d)}
+                >
+                  <span>{format(d, dateFormat)}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
-
-        <div className="days-of-week">
-          {daysOfWeek.map((dayName, idx) => (
-            <span key={dayName} className={idx >= 5 ? 'weekend-header' : ''}>{dayName}</span>
-          ))}
-        </div>
-
-        <div className="days-grid">
-          {calendarInterval.map((d) => {
-            const isMonthSame = isSameMonth(d, monthStart);
-            const isToday = isSameDay(d, new Date());
-            const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-
-            let classes = `day-cell ${isMonthSame ? '' : 'inactive'}`;
-
-            if (isMonthSame && isWeekend) classes += ' active-weekend';
-            if (isToday) classes += ' is-today';
-
-            const selected = isDaySelected(d);
-            const inRange = isDayInRange(d);
-
-            if (selected && startDate && isSameDay(d, startDate)) classes += ' range-start';
-            if (selected && endDate && isSameDay(d, endDate)) classes += ' range-end';
-            if (inRange && (!selected || (startDate && endDate && isSameDay(startDate, endDate)))) {
-              // The extra logic handles hover states and the case where start/end are the same
-              classes += ' range-in-between';
-            }
-
-            // Adjust corners for start/end in range
-            if (inRange && startDate && endDate && !isSameDay(startDate, endDate)) {
-              if (isSameDay(d, startDate)) classes += ' range-in-between range-start';
-              if (isSameDay(d, endDate)) classes += ' range-in-between range-end';
-            }
-
-            return (
-              <div
-                key={d.toISOString()}
-                className={classes}
-                onClick={() => isMonthSame && onDateClick(d)}
-                onMouseEnter={() => isMonthSame && onDateHover(d)}
-              >
-                <span>{format(d, dateFormat)}</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
       </div>
     </div>
   );

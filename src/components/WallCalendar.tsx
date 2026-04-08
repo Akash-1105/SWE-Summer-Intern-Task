@@ -16,35 +16,20 @@ import {
 } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import './WallCalendar.css';
-
-// Import unique images for each month
-import januaryImg from '../assets/january.png';
-import februaryImg from '../assets/february.png';
-import marchImg from '../assets/march.png';
-import aprilImg from '../assets/spring.png';
-import mayImg from '../assets/may.png';
-import juneImg from '../assets/summer.png';
-import julyImg from '../assets/july.png';
-import augustImg from '../assets/august.png';
-import septemberImg from '../assets/autumn.png';
-import octoberImg from '../assets/october.png';
-import novemberImg from '../assets/november.png';
-import decemberImg from '../assets/winter.png';
-
-// One unique image per month
+// One unique image per month (now served from /public)
 const monthImages = [
-  januaryImg,   // Jan — snowy mountain sunrise
-  februaryImg,  // Feb — frozen lake
-  marchImg,     // Mar — early spring
-  aprilImg,     // Apr — cherry blossoms
-  mayImg,       // May — wildflower meadow
-  juneImg,      // Jun — tropical beach
-  julyImg,      // Jul — island lagoon
-  augustImg,    // Aug — sunflower field
-  septemberImg, // Sep — autumn forest
-  octoberImg,   // Oct — fall foliage
-  novemberImg,  // Nov — misty woods
-  decemberImg   // Dec — winter wonderland
+  '/january.png',   // Jan
+  '/february.png',  // Feb
+  '/march.png',     // Mar
+  '/spring.png',     // Apr
+  '/may.png',       // May
+  '/summer.png',     // Jun
+  '/july.png',      // Jul
+  '/august.png',    // Aug
+  '/autumn.png',     // Sep
+  '/october.png',   // Oct
+  '/november.png',  // Nov
+  '/winter.png'     // Dec
 ];
 
 interface Note {

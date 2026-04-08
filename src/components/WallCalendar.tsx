@@ -12,8 +12,7 @@ import {
   isSameDay,
   isWithinInterval,
   isAfter,
-  isBefore,
-  parseISO
+  isBefore
 } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import './WallCalendar.css';
@@ -47,7 +46,6 @@ export default function WallCalendar() {
 
   // Flip animation state
   const [isFlipping, setIsFlipping] = useState(false);
-  const [flipDirection, setFlipDirection] = useState<'next' | 'prev'>('next');
 
   // Load notes from local storage initially
   const [notes, setNotes] = useState<Note[]>(Array(6).fill({ text: '' }));
@@ -87,7 +85,6 @@ export default function WallCalendar() {
   };
 
   const nextMonth = () => {
-    setFlipDirection('next');
     setIsFlipping(true);
     setTimeout(() => {
       setCurrentDate(addMonths(currentDate, 1));
@@ -96,7 +93,6 @@ export default function WallCalendar() {
   };
 
   const prevMonth = () => {
-    setFlipDirection('prev');
     setIsFlipping(true);
     setTimeout(() => {
       setCurrentDate(subMonths(currentDate, 1));
@@ -135,10 +131,6 @@ export default function WallCalendar() {
   const endDateGrid = endOfWeek(monthEnd, { weekStartsOn: 1 });
 
   const dateFormat = 'd';
-  const rows = [];
-  let days = [];
-  let day = startDateGrid;
-  let formattedDate = '';
 
   const calendarInterval = eachDayOfInterval({ start: startDateGrid, end: endDateGrid });
 
@@ -348,13 +340,13 @@ export default function WallCalendar() {
         </div>
 
         <div className="days-of-week">
-          {daysOfWeek.map((dayName, i) => (
-            <span key={dayName} className={i >= 5 ? 'weekend-header' : ''}>{dayName}</span>
+          {daysOfWeek.map((dayName, idx) => (
+            <span key={dayName} className={idx >= 5 ? 'weekend-header' : ''}>{dayName}</span>
           ))}
         </div>
 
         <div className="days-grid">
-          {calendarInterval.map((d, i) => {
+          {calendarInterval.map((d) => {
             const isMonthSame = isSameMonth(d, monthStart);
             const isToday = isSameDay(d, new Date());
             const isWeekend = d.getDay() === 0 || d.getDay() === 6;

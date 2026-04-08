@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   format,
   addMonths,
@@ -17,26 +17,34 @@ import {
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import './WallCalendar.css';
 
-// Import local seasonal images
-import winterImg from '../assets/winter.png';
-import springImg from '../assets/spring.png';
-import summerImg from '../assets/summer.png';
-import autumnImg from '../assets/autumn.png';
+// Import unique images for each month
+import januaryImg from '../assets/january.png';
+import februaryImg from '../assets/february.png';
+import marchImg from '../assets/march.png';
+import aprilImg from '../assets/spring.png';
+import mayImg from '../assets/may.png';
+import juneImg from '../assets/summer.png';
+import julyImg from '../assets/july.png';
+import augustImg from '../assets/august.png';
+import septemberImg from '../assets/autumn.png';
+import octoberImg from '../assets/october.png';
+import novemberImg from '../assets/november.png';
+import decemberImg from '../assets/winter.png';
 
-// Map each month to a seasonal image
+// One unique image per month
 const monthImages = [
-  winterImg,  // Jan
-  winterImg,  // Feb
-  springImg,  // Mar
-  springImg,  // Apr
-  springImg,  // May
-  summerImg,  // Jun
-  summerImg,  // Jul
-  summerImg,  // Aug
-  autumnImg,  // Sep
-  autumnImg,  // Oct
-  autumnImg,  // Nov
-  winterImg   // Dec
+  januaryImg,   // Jan — snowy mountain sunrise
+  februaryImg,  // Feb — frozen lake
+  marchImg,     // Mar — early spring
+  aprilImg,     // Apr — cherry blossoms
+  mayImg,       // May — wildflower meadow
+  juneImg,      // Jun — tropical beach
+  julyImg,      // Jul — island lagoon
+  augustImg,    // Aug — sunflower field
+  septemberImg, // Sep — autumn forest
+  octoberImg,   // Oct — fall foliage
+  novemberImg,  // Nov — misty woods
+  decemberImg   // Dec — winter wonderland
 ];
 
 interface Note {
@@ -50,7 +58,7 @@ export default function WallCalendar() {
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
 
-  // Flip animation state
+  // Animation state
   const [isFlipping, setIsFlipping] = useState(false);
 
   // Load notes from local storage initially
@@ -67,44 +75,41 @@ export default function WallCalendar() {
     }
   }, []);
 
-  const saveNotes = (newNotes: Note[]) => {
-    setNotes(newNotes);
-    localStorage.setItem('calendar_notes', JSON.stringify(newNotes));
-  };
 
-  const handleNoteChange = (index: number, value: string) => {
-    const newNotes = [...notes];
-    let rangeBadge = undefined;
+  const handleNoteChange = useCallback((index: number, value: string) => {
+    setNotes(prev => {
+      const newNotes = [...prev];
+      let rangeBadge = undefined;
 
-    // Automatically tag note to currently selected range
-    if (value && startDate && endDate) {
-      const startStr = format(startDate, 'MMM d');
-      const endStr = format(endDate, 'MMM d');
-      rangeBadge = `${startStr} - ${endStr}`;
-    } else if (newNotes[index].range && value) {
-      // Keep existing range if just editing text
-      rangeBadge = newNotes[index].range;
-    }
+      if (value && startDate && endDate) {
+        const startStr = format(startDate, 'MMM d');
+        const endStr = format(endDate, 'MMM d');
+        rangeBadge = `${startStr} - ${endStr}`;
+      } else if (newNotes[index].range && value) {
+        rangeBadge = newNotes[index].range;
+      }
 
-    newNotes[index] = { text: value, range: value ? rangeBadge : undefined };
-    saveNotes(newNotes);
-  };
+      newNotes[index] = { text: value, range: value ? rangeBadge : undefined };
+      localStorage.setItem('calendar_notes', JSON.stringify(newNotes));
+      return newNotes;
+    });
+  }, [startDate, endDate]);
 
-  const nextMonth = () => {
+  // Month change — instant image swap with calendar flip
+  const changeMonth = useCallback((direction: 'next' | 'prev') => {
+    if (isFlipping) return;
     setIsFlipping(true);
-    setTimeout(() => {
-      setCurrentDate(addMonths(currentDate, 1));
-      setIsFlipping(false);
-    }, 500);
-  };
 
-  const prevMonth = () => {
-    setIsFlipping(true);
     setTimeout(() => {
-      setCurrentDate(subMonths(currentDate, 1));
+      setCurrentDate(prev =>
+        direction === 'next' ? addMonths(prev, 1) : subMonths(prev, 1)
+      );
       setIsFlipping(false);
-    }, 500);
-  };
+    }, 400);
+  }, [isFlipping]);
+
+  const nextMonth = useCallback(() => changeMonth('next'), [changeMonth]);
+  const prevMonth = useCallback(() => changeMonth('prev'), [changeMonth]);
 
   const onDateClick = (day: Date) => {
     if (!startDate || (startDate && endDate)) {
@@ -130,7 +135,7 @@ export default function WallCalendar() {
     }
   };
 
-  // Generate calendar grid
+  // Generate calendar grid — memoized for performance
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
   const startDateGrid = startOfWeek(monthStart, { weekStartsOn: 1 });
@@ -138,15 +143,18 @@ export default function WallCalendar() {
 
   const dateFormat = 'd';
 
-  const calendarInterval = eachDayOfInterval({ start: startDateGrid, end: endDateGrid });
+  const calendarInterval = useMemo(
+    () => eachDayOfInterval({ start: startDateGrid, end: endDateGrid }),
+    [startDateGrid.getTime(), endDateGrid.getTime()]
+  );
 
-  const isDaySelected = (d: Date) => {
+  const isDaySelected = useCallback((d: Date) => {
     if (startDate && isSameDay(d, startDate)) return true;
     if (endDate && isSameDay(d, endDate)) return true;
     return false;
-  };
+  }, [startDate, endDate]);
 
-  const isDayInRange = (d: Date) => {
+  const isDayInRange = useCallback((d: Date) => {
     if (startDate && endDate) {
       return isWithinInterval(d, { start: startDate, end: endDate });
     }
@@ -156,11 +164,11 @@ export default function WallCalendar() {
       return isWithinInterval(d, { start: s, end: e });
     }
     return false;
-  };
+  }, [startDate, endDate, hoverDate]);
 
   const daysOfWeek = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
-  // Unique UI Feature 1: Thematic image based on month index
+  // Current theme image based on month
   const themeImage = monthImages[currentDate.getMonth()];
 
   // Generate spiral coil data points for SVG path — mimics the C-shaped loops in the reference
@@ -304,7 +312,7 @@ export default function WallCalendar() {
         <div className="hero-decor-left"></div>
         {/* Layer 2: Right blue decorative shape */}
         <div className="hero-decor-right"></div>
-        {/* Layer 3: Hero image with V-shaped bottom clip */}
+        {/* Layer 3: Hero image */}
         <div className="hero-image-wrapper">
           <img
             src={themeImage}

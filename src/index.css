@@ -1,13 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 
 :root {
-  --primary-color: #0E83D0; /* The cyan-blue from the image */
+  --primary-color: #0E83D0;
+  /* The cyan-blue from the image */
   --bg-color: #EFF2F5;
   --text-main: #333333;
   --text-muted: #95A5A6;
   --border-color: #E2E8F0;
   --white: #FFFFFF;
-  --shadow-main: 0 20px 40px -10px rgba(0,0,0,0.15);
+  --shadow-main: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
   --shadow-glow: 0 0 15px rgba(14, 131, 208, 0.4);
 }
 
@@ -36,6 +37,11 @@ body {
   align-items: center;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Outfit', sans-serif;
 }
